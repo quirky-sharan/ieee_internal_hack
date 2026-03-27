@@ -35,6 +35,14 @@ def create_massive_db():
     cursor.execute('''
     CREATE INDEX idx_symptom ON condition_symptoms(symptom_code)
     ''')
+
+    cursor.execute('''
+    CREATE INDEX idx_condition_id ON condition_symptoms(condition_id)
+    ''')
+
+    cursor.execute('''
+    CREATE INDEX idx_conditions_icd10 ON conditions(icd10)
+    ''')
     
     # Base diseases mapped to their primary ICD-10 symptoms in nlp_pipeline.py
     # This matrix contains precise probabilities.
@@ -157,6 +165,20 @@ def create_massive_db():
         INSERT INTO condition_symptoms (condition_id, symptom_code, probability)
         VALUES (?, ?, ?)
     ''', symptoms_data)
+
+    # Pre-aggregate totals for blazing fast inference queries
+    cursor.execute('''
+    CREATE TABLE condition_totals AS
+    SELECT condition_id,
+           SUM(probability) as total_weight,
+           COUNT(*) as total_symptoms
+    FROM condition_symptoms
+    GROUP BY condition_id
+    ''')
+    
+    cursor.execute('''
+    CREATE INDEX idx_totals_cid ON condition_totals(condition_id)
+    ''')
 
     conn.commit()
     conn.close()

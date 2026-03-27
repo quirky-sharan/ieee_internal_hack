@@ -83,6 +83,7 @@ class NextQuestionResponse(BaseModel):
     interview_complete: bool = False
     options: Optional[List[Dict[str, str]]] = None
     symptom_code: Optional[str] = None
+    fallback_idx: Optional[int] = None
 
 
 class AnswerDetail(BaseModel):
@@ -198,9 +199,15 @@ def api_next_question(req: NextQuestionRequest):
     try:
         sid = req.session_id
 
-        # Get or create session state
+        # Get or create session state with FULL tracking
         if sid not in _session_state:
-            _session_state[sid] = {"text": "", "depth": 0, "asked_symptoms": []}
+            _session_state[sid] = {
+                "text": "",
+                "depth": 0,
+                "asked_symptoms": [],   # ICD-10 codes asked about
+                "asked_questions": [],  # Exact question strings shown
+                "fallback_idx": 0,      # Pointer into ordered fallback pool
+            }
 
         state = _session_state[sid]
         
@@ -211,12 +218,18 @@ def api_next_question(req: NextQuestionRequest):
         result = get_next_question(
             combined_text=state["text"],
             depth=req.depth,
-            asked_symptoms=state["asked_symptoms"]
+            asked_symptoms=state["asked_symptoms"],
+            asked_questions=state["asked_questions"],
+            asked_fallback_idx=state["fallback_idx"],
         )
 
-        # Track the asked symptom natively to prevent infinite loops!
+        # Track EVERYTHING to prevent any repetition
         if result.get("symptom_code"):
             state["asked_symptoms"].append(result["symptom_code"])
+        if result.get("question"):
+            state["asked_questions"].append(result["question"])
+        if result.get("fallback_idx") is not None:
+            state["fallback_idx"] = result["fallback_idx"]
 
         return NextQuestionResponse(**result)
     except Exception as e:

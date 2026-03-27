@@ -45,19 +45,20 @@ def _compute_scores(
     # Create IN clause
     placeholders = ','.join(['?'] * len(symptom_icd10_codes))
     
-    # Very fast SQL approach: Only analyze conditions where patient holds AT LEAST ONE matching symptom
+    # Very fast SQL using pre-aggregated totals table (no correlated subqueries)
     query = f"""
     SELECT c.id, c.name, c.icd10, c.risk_weight, c.patient_explanation, c.doctor_explanation,
            SUM(cs.probability) as matched_weight, 
            COUNT(cs.symptom_code) as matched_count,
-           (SELECT SUM(probability) FROM condition_symptoms WHERE condition_id = c.id) as max_weight,
-           (SELECT COUNT(*) FROM condition_symptoms WHERE condition_id = c.id) as total_symptoms
+           ct.total_weight as max_weight,
+           ct.total_symptoms as total_symptoms
     FROM conditions c
     JOIN condition_symptoms cs ON c.id = cs.condition_id
+    JOIN condition_totals ct ON c.id = ct.condition_id
     WHERE cs.symptom_code IN ({placeholders})
     GROUP BY c.id
     ORDER BY matched_weight DESC
-    LIMIT 100
+    LIMIT 50
     """
     
     cursor.execute(query, symptom_icd10_codes)
