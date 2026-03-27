@@ -57,16 +57,16 @@ export default function ResultPage() {
 
         {/* View Mode Toggle */}
         <div style={{ display: "flex", justifyContent: "center", marginBottom: "1.5rem" }}>
-          <div style={{ display: "inline-flex", background: "rgba(255,255,255,0.05)", borderRadius: "var(--radius-full)", padding: 4, border: "1px solid rgba(255,255,255,0.1)" }}>
+          <div style={{ display: "inline-flex", background: "var(--bg-subtle)", borderRadius: "100px", padding: 4, border: "1px solid var(--border-color)" }}>
             <button 
               onClick={() => setViewMode("patient")}
-              style={{ padding: "8px 16px", borderRadius: "100px", border: "none", background: viewMode === "patient" ? "var(--accent-blue)" : "transparent", color: viewMode === "patient" ? "#fff" : "var(--text-muted)", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", transition: "all 0.2s" }}
+              style={{ padding: "8px 16px", borderRadius: "100px", border: "none", background: viewMode === "patient" ? "var(--text-primary)" : "transparent", color: viewMode === "patient" ? "var(--bg-base)" : "var(--text-muted)", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", transition: "all 0.2s" }}
             >
               Patient Overview
             </button>
             <button 
               onClick={() => setViewMode("doctor")}
-              style={{ padding: "8px 16px", borderRadius: "100px", border: "none", background: viewMode === "doctor" ? "var(--accent-cyan)" : "transparent", color: viewMode === "doctor" ? "#fff" : "var(--text-muted)", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", transition: "all 0.2s" }}
+              style={{ padding: "8px 16px", borderRadius: "100px", border: "none", background: viewMode === "doctor" ? "var(--text-primary)" : "transparent", color: viewMode === "doctor" ? "var(--bg-base)" : "var(--text-muted)", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", transition: "all 0.2s" }}
             >
               Doctor Detailed View
             </button>
@@ -121,12 +121,12 @@ export default function ResultPage() {
                         {((cond.confidence || 0) * 100).toFixed(0)}%
                       </span>
                     </div>
-                    <div className="progress-bar-track">
+                    <div className="progress-bar-track" style={{ background: "var(--bg-subtle)" }}>
                       <motion.div className="progress-bar-fill"
                         initial={{ width: 0 }}
                         animate={{ width: `${(cond.confidence || 0) * 100}%` }}
                         transition={{ duration: 0.8, delay: i * 0.15 }}
-                        style={{ background: i === 0 ? "linear-gradient(90deg, var(--accent-blue), var(--accent-cyan))" : "rgba(255,255,255,0.2)" }}
+                        style={{ background: i === 0 ? "var(--text-primary)" : "var(--text-muted)" }}
                       />
                     </div>
                     {cond.icd10 && (
@@ -201,8 +201,8 @@ export default function ResultPage() {
         </div>
 
         {/* Disclaimer */}
-        <div style={{ marginTop: "2rem", padding: "1rem 1.25rem", borderRadius: "var(--radius-md)", background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.15)", fontSize: "0.78rem", color: "var(--text-muted)", lineHeight: 1.6 }}>
-          ⚕️ This output is informational only, based on probabilistic inference from symptom datasets. It does not constitute medical advice. Always consult a qualified healthcare provider for medical decisions.
+        <div style={{ marginTop: "2.5rem", padding: "1.25rem", borderTop: "1px solid var(--border-color)", fontSize: "0.8rem", color: "var(--text-muted)", lineHeight: 1.6, textAlign: "center" }}>
+          Meowmeow is an informational probabilistic engine. Always consult a qualified healthcare provider for final medical diagnostics.
         </div>
       </motion.div>
     </div>

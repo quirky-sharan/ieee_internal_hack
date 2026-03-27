@@ -71,11 +71,11 @@ export default function LoginPage() {
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
           <div style={{
             display: "inline-flex", alignItems: "center", justifyContent: "center",
-            width: 56, height: 56, borderRadius: 16,
-            background: "linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.2))",
-            border: "1px solid rgba(59,130,246,0.3)", marginBottom: "1rem"
+            width: 56, height: 56, borderRadius: "50%",
+            background: "var(--bg-subtle)",
+            border: "1px solid var(--border-color)", marginBottom: "1.5rem"
           }}>
-            <Brain size={28} color="var(--accent-blue)" />
+            <Cat size={28} color="var(--text-primary)" />
           </div>
           <h1 style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: "1.75rem", fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 8 }}>
             Welcome back

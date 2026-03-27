@@ -1,17 +1,31 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
-import { Brain, BarChart2, Clock } from "lucide-react";
+import { useThemeStore } from "../store/themeStore";
+import { Cat, BarChart2, Clock, Moon, Sun, Monitor, Coffee } from "lucide-react";
 import { useState } from "react";
 
 export default function Navbar() {
   const { user, token, logout } = useAuthStore();
+  const { theme, setTheme } = useThemeStore();
   const location = useLocation();
   const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate("/login");
+  };
+
+  const cycleTheme = () => {
+    const modes = ["light", "dark", "sepia", "midnight"];
+    const idx = modes.indexOf(theme);
+    setTheme(modes[(idx + 1) % modes.length]);
+  };
+
+  const getThemeIcon = () => {
+    if (theme === "light") return <Sun size={16} />;
+    if (theme === "dark") return <Moon size={16} />;
+    if (theme === "sepia") return <Coffee size={16} />;
+    return <Monitor size={16} />;
   };
 
   const isActive = (path) => location.pathname.startsWith(path) ? "active" : "";
@@ -23,9 +37,8 @@ export default function Navbar() {
   return (
     <nav className="navbar">
       <Link to="/dashboard" className="navbar-brand">
-        <Brain size={22} color="var(--accent-blue)" />
-        <span>Meow<span style={{ color: "var(--accent-blue)" }}>meow</span></span>
-        <span className="brand-dot" />
+        <Cat size={24} style={{ fill: "var(--text-primary)" }} strokeWidth={1} />
+        <span style={{ fontWeight: 800, letterSpacing: "-0.05em" }}>Meowmeow</span>
       </Link>
 
       {token && (
@@ -38,6 +51,13 @@ export default function Navbar() {
             <Link to="/population" className={`nav-link ${isActive("/population")}`}>
               <BarChart2 size={14} style={{ display: "inline", marginRight: 4 }} />Population
             </Link>
+            <button 
+              onClick={cycleTheme} 
+              title={`Theme: ${theme}`}
+              style={{ background: "transparent", border: "1px solid var(--border-color)", borderRadius: "50%", padding: 6, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "var(--text-secondary)" }}
+            >
+              {getThemeIcon()}
+            </button>
             <div className="tooltip-wrap" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <Link to="/profile" className="avatar-btn" title="Your Profile">
                 {user?.photo_url

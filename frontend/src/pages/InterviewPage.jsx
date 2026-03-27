@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { sessionApi } from "../api/endpoints";
 import { useBehavioralCapture } from "../hooks/useBehavioralCapture";
-import { Mic, MicOff, Send, Volume2, VolumeX, Brain } from "lucide-react";
+import { Mic, MicOff, Send, Volume2, VolumeX, Cat } from "lucide-react";
 
 const TTS_RATE = 0.88;
 
@@ -173,7 +173,7 @@ export default function InterviewPage() {
         <div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <Brain size={16} color="var(--accent-blue)" />
+              <Cat size={16} color="var(--text-primary)" />
               <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)", fontWeight: 500 }}>Clinical Interview</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -196,9 +196,9 @@ export default function InterviewPage() {
         <div style={{ display: "flex", justifyContent: "center" }}>
           <span style={{
             display: "inline-flex", alignItems: "center", gap: 6,
-            padding: "4px 14px", borderRadius: "var(--radius-full)",
-            background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.25)",
-            fontSize: "0.75rem", fontWeight: 600, color: "var(--accent-blue-light)",
+            padding: "4px 14px", borderRadius: "100px",
+            background: "var(--bg-card)", border: "1px solid var(--border-color)",
+            fontSize: "0.75rem", fontWeight: 600, color: "var(--text-primary)",
             letterSpacing: "0.06em", textTransform: "uppercase"
           }}>
             {categoryLabel}
@@ -236,7 +236,7 @@ export default function InterviewPage() {
         <motion.div
           className="card"
           style={{ padding: "1.5rem" }}
-          animate={{ borderColor: answer.length >= 3 ? "rgba(59,130,246,0.4)" : "rgba(255,255,255,0.08)" }}
+          animate={{ borderColor: answer.length >= 3 ? "var(--text-primary)" : "var(--border-color)" }}
         >
           {transcript && (
             <div style={{
@@ -308,7 +308,7 @@ export default function InterviewPage() {
                   onClick={() => navigate(`/result/${sessionId}`)}
                   style={{ gap: 8 }}
                 >
-                  <Brain size={16} /> Generate Diagnosis
+                  <Cat size={16} /> Generate Diagnosis
                 </button>
               )}
               <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Ctrl+Enter to submit</span>

@@ -1,8 +1,10 @@
 import { useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "./store/authStore";
+import { useThemeStore } from "./store/themeStore";
 import { authApi } from "./api/endpoints";
 import Navbar from "./components/Navbar";
+import Cursor from "./components/Cursor";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
@@ -24,6 +26,11 @@ function PublicRoute({ children }) {
 
 export default function App() {
   const { token, setUser, logout } = useAuthStore();
+  const { theme } = useThemeStore();
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
 
   useEffect(() => {
     if (token) {
@@ -35,7 +42,7 @@ export default function App() {
 
   return (
     <div className="app-layout">
-      <div className="bg-animated" />
+      <Cursor />
       <Navbar />
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />

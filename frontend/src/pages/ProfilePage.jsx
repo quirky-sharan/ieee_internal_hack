@@ -53,18 +53,18 @@ export default function ProfilePage() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         
         {/* Header Profile Card */}
-        <div className="card card-glow" style={{ padding: "2rem", marginBottom: "2rem", display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap", background: "linear-gradient(145deg, rgba(30,41,59,0.7), rgba(15,23,42,0.9))" }}>
-          <div style={{ width: 80, height: 80, borderRadius: "50%", background: "var(--bg-card-hover)", border: "2px solid rgba(59,130,246,0.3)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: "1.5rem", fontWeight: 700, color: "var(--accent-blue)" }}>
+        <div className="card" style={{ padding: "2.5rem", marginBottom: "3rem", display: "flex", alignItems: "center", gap: "2rem", flexWrap: "wrap", border: "none", background: "var(--bg-subtle)" }}>
+          <div style={{ width: 90, height: 90, borderRadius: "50%", background: "var(--bg-base)", border: "1px solid var(--border-color)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: "1.75rem", fontWeight: 800, color: "var(--text-primary)" }}>
             {user?.photo_url 
               ? <img src={user.photo_url} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} referrerPolicy="no-referrer" />
               : initials}
           </div>
           <div>
-            <h1 style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: "1.75rem", fontWeight: 800, margin: 0, color: "#fff" }}>
+            <h1 style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: "2rem", fontWeight: 800, margin: 0, color: "var(--text-primary)", letterSpacing: "-0.04em" }}>
               {user?.full_name || "Patient Profile"}
             </h1>
-            <p style={{ color: "var(--text-secondary)", marginTop: 4, display: "flex", alignItems: "center", gap: 6 }}>
-              <User size={14} /> {user?.email}
+            <p style={{ color: "var(--text-secondary)", marginTop: 6, display: "flex", alignItems: "center", gap: 8, fontSize: "0.95rem" }}>
+              <User size={16} /> {user?.email}
             </p>
           </div>
           <div style={{ marginLeft: "auto", display: "flex", gap: "1rem" }}>
