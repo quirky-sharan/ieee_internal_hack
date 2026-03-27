@@ -38,14 +38,19 @@ export default function Navbar() {
             <Link to="/population" className={`nav-link ${isActive("/population")}`}>
               <BarChart2 size={14} style={{ display: "inline", marginRight: 4 }} />Population
             </Link>
-            <div className="tooltip-wrap">
-              <button className="avatar-btn" onClick={handleLogout} title="Logout">
+            <div className="tooltip-wrap" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <div className="avatar-btn" title="Your Profile" style={{ cursor: "default" }}>
                 {user?.photo_url
-                  ? <img src={user.photo_url} alt="avatar" />
+                  ? <img src={user.photo_url} alt="avatar" style={{width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover"}} />
                   : <div className="avatar-initials">{initials}</div>
                 }
+              </div>
+              <button 
+                onClick={handleLogout} 
+                style={{ background: "transparent", border: "1px solid rgba(239,68,68,0.3)", color: "#ef4444", padding: "6px 12px", borderRadius: "8px", cursor: "pointer", fontSize: "0.8rem", fontWeight: 600 }}
+              >
+                Logout
               </button>
-              <span className="tooltip">Logout</span>
             </div>
           </div>
         </>

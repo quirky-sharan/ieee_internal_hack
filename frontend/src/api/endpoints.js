@@ -7,8 +7,8 @@ import realClient from "./client";
 export const authApi = {
   register: (data) => realClient.post("/auth/register", data),
   login:    (data) => realClient.post("/auth/login", data),
-  googleAuth: (firebaseToken, fullName, email) =>
-    realClient.post("/auth/google", { firebase_token: firebaseToken, full_name: fullName, photo_url: email }),
+  googleAuth: (firebaseToken, fullName, photoUrl) =>
+    realClient.post("/auth/google", { firebase_token: firebaseToken, full_name: fullName, photo_url: photoUrl }),
   getMe:    ()     => realClient.get("/auth/me"),
   updateMe: (data) => realClient.patch("/auth/me", data),
 };

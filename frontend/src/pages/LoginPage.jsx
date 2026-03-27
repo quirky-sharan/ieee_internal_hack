@@ -45,7 +45,7 @@ export default function LoginPage() {
       const res = await authApi.googleAuth(
         idToken,
         user.displayName,
-        user.email
+        user.photoURL
       );
 
       setAuth(res.data.user, res.data.access_token);

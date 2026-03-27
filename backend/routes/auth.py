@@ -87,8 +87,10 @@ async def google_auth(payload: FirebaseAuthRequest, db: Session = Depends(get_db
         db.add(user)
     else:
         user.firebase_uid = firebase_uid
-        user.full_name = user.full_name or name
-        user.photo_url = user.photo_url or photo
+        if name:
+            user.full_name = name
+        if photo:
+            user.photo_url = photo
 
     db.commit()
     db.refresh(user)
