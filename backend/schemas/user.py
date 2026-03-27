@@ -26,6 +26,11 @@ class UserOut(BaseModel):
     age: Optional[int]
     sex: Optional[str]
     photo_url: Optional[str]
+    weight: Optional[str] = None
+    height: Optional[str] = None
+    blood_group: Optional[str] = None
+    allergies: Optional[str] = None
+    medical_conditions: Optional[str] = None
     created_at: datetime
 
     class Config:
@@ -40,3 +45,8 @@ class UserUpdate(BaseModel):
     full_name: Optional[str] = None
     age: Optional[int] = None
     sex: Optional[str] = None
+    weight: Optional[str] = None
+    height: Optional[str] = None
+    blood_group: Optional[str] = None
+    allergies: Optional[str] = None
+    medical_conditions: Optional[str] = None
