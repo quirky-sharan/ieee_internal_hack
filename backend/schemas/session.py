@@ -31,6 +31,7 @@ class AnswerResponse(BaseModel):
     interview_complete: bool
     current_depth: int
     progress_pct: float
+    options: Optional[List[Dict[str, str]]] = None
 
 class RiskOutput(BaseModel):
     session_id: str
@@ -40,6 +41,8 @@ class RiskOutput(BaseModel):
     reasoning_chain: List[str]
     behavioral_flags: List[str]
     recommended_action: str
+    patient_explanation: Optional[str] = None
+    doctor_explanation: Optional[str] = None
     trajectory_label: Optional[str]
     trajectory_score: Optional[float]
 

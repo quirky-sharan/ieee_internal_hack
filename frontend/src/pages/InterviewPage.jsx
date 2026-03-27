@@ -35,6 +35,7 @@ export default function InterviewPage() {
   const [transcript, setTranscript] = useState("");
   const [error, setError] = useState("");
   const [questionVisible, setQuestionVisible] = useState(true);
+  const [currentOptions, setCurrentOptions] = useState(null);
 
   const behavCapture = useBehavioralCapture();
   const recognitionRef = useRef(null);
@@ -97,6 +98,7 @@ export default function InterviewPage() {
       setTimeout(() => {
         setCurrentQuestion(res.data.next_question);
         setCurrentCategory(res.data.next_question_category);
+        setCurrentOptions(res.data.options || null);
         setAnswer("");
         setTranscript("");
         setQuestionVisible(true);
@@ -175,7 +177,7 @@ export default function InterviewPage() {
               <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)", fontWeight: 500 }}>Clinical Interview</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Question {depth + 1} of 5</span>
+              <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Question {depth + 1}</span>
               <button
                 onClick={() => { setTtsEnabled(!ttsEnabled); window.speechSynthesis?.cancel(); }}
                 className="btn btn-secondary btn-sm btn-icon"
@@ -260,6 +262,25 @@ export default function InterviewPage() {
             autoFocus
           />
 
+          {currentOptions && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: "1rem" }}>
+              {currentOptions.map((opt, i) => (
+                <button
+                  key={i}
+                  onClick={() => { setAnswer(opt.label); setTimeout(handleSubmit, 200); }}
+                  style={{
+                    padding: "8px 16px", borderRadius: "100px", border: "1px solid var(--border-color)",
+                    background: answer === opt.label ? "var(--accent-blue)" : "rgba(255,255,255,0.05)",
+                    color: answer === opt.label ? "#fff" : "var(--text-primary)",
+                    cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", transition: "all 0.2s"
+                  }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )}
+
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <motion.button
@@ -280,6 +301,16 @@ export default function InterviewPage() {
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              {depth >= 4 && (
+                <button
+                  className="btn btn-secondary"
+                  disabled={submitting}
+                  onClick={() => navigate(`/result/${sessionId}`)}
+                  style={{ gap: 8 }}
+                >
+                  <Brain size={16} /> Generate Diagnosis
+                </button>
+              )}
               <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Ctrl+Enter to submit</span>
               <motion.button
                 className="btn btn-primary"
@@ -289,7 +320,7 @@ export default function InterviewPage() {
                 whileTap={{ scale: 0.97 }}
                 style={{ gap: 8 }}
               >
-                {submitting ? <><div className="spinner" /> Analyzing…</> : <><Send size={16} /> Submit</>}
+                {submitting ? <><div className="spinner" /> Analyzing…</> : <><Send size={16} /> Submit / Continue</>}
               </motion.button>
             </div>
           </div>

@@ -81,6 +81,8 @@ class NextQuestionResponse(BaseModel):
     branch: str
     total_questions: int
     interview_complete: bool = False
+    options: Optional[List[Dict[str, str]]] = None
+    symptom_code: Optional[str] = None
 
 
 class AnswerDetail(BaseModel):
@@ -102,6 +104,8 @@ class InferResponse(BaseModel):
     reasoning_chain: List[str]
     behavioral_flags: List[str]
     recommended_action: str
+    patient_explanation: Optional[str] = None
+    doctor_explanation: Optional[str] = None
     trajectory_label: Optional[str] = None
     escalation_score: Optional[float] = None
     intensity: Optional[Dict[str, Any]] = None
@@ -190,35 +194,29 @@ def api_analyze_intensity(req: AnalyzeIntensityRequest):
 
 @app.post("/ml/next-question", response_model=NextQuestionResponse)
 def api_next_question(req: NextQuestionRequest):
-    """Get the next interview question based on the user's answer and session state."""
+    """Get the next interview question based on the user's combined answers dynamically."""
     try:
         sid = req.session_id
 
         # Get or create session state
         if sid not in _session_state:
-            _session_state[sid] = {"branch": None, "depth": 0}
+            _session_state[sid] = {"text": "", "depth": 0, "asked_symptoms": []}
 
         state = _session_state[sid]
+        
+        # Append latest answer
+        state["text"] += " " + req.answer_text
+        state["depth"] = req.depth
 
-        # On first answer (depth 1), detect category and set branch
-        if req.depth <= 1:
-            detected_cat = get_primary_category(req.answer_text)
-            result = get_next_question(
-                answer_text=req.answer_text,
-                current_category=req.current_category,
-                depth=req.depth,
-                session_branch=None,
-            )
-            state["branch"] = result["branch"]
-            state["depth"] = req.depth
-        else:
-            result = get_next_question(
-                answer_text=req.answer_text,
-                current_category=req.current_category,
-                depth=req.depth,
-                session_branch=state.get("branch"),
-            )
-            state["depth"] = req.depth
+        result = get_next_question(
+            combined_text=state["text"],
+            depth=req.depth,
+            asked_symptoms=state["asked_symptoms"]
+        )
+
+        # Track the asked symptom natively to prevent infinite loops!
+        if result.get("symptom_code"):
+            state["asked_symptoms"].append(result["symptom_code"])
 
         return NextQuestionResponse(**result)
     except Exception as e:
@@ -267,6 +265,8 @@ def api_infer(req: InferRequest):
             reasoning_chain=inference_result["reasoning_chain"],
             behavioral_flags=inference_result["behavioral_flags"],
             recommended_action=inference_result["recommended_action"],
+            patient_explanation=inference_result.get("patient_explanation"),
+            doctor_explanation=inference_result.get("doctor_explanation"),
             trajectory_label=trajectory_label,
             escalation_score=escalation_score,
             intensity=inference_result.get("intensity"),

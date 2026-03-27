@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { sessionApi } from "../api/endpoints";
 import {
@@ -25,6 +26,7 @@ const TRAJECTORY_CONFIG = {
 export default function ResultPage() {
   const { sessionId } = useParams();
   const navigate = useNavigate();
+  const [viewMode, setViewMode] = useState("patient");
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["result", sessionId],
@@ -53,10 +55,31 @@ export default function ResultPage() {
     <div className="page-container" style={{ maxWidth: 780 }}>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
 
+        {/* View Mode Toggle */}
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "1.5rem" }}>
+          <div style={{ display: "inline-flex", background: "rgba(255,255,255,0.05)", borderRadius: "var(--radius-full)", padding: 4, border: "1px solid rgba(255,255,255,0.1)" }}>
+            <button 
+              onClick={() => setViewMode("patient")}
+              style={{ padding: "8px 16px", borderRadius: "100px", border: "none", background: viewMode === "patient" ? "var(--accent-blue)" : "transparent", color: viewMode === "patient" ? "#fff" : "var(--text-muted)", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", transition: "all 0.2s" }}
+            >
+              Patient Overview
+            </button>
+            <button 
+              onClick={() => setViewMode("doctor")}
+              style={{ padding: "8px 16px", borderRadius: "100px", border: "none", background: viewMode === "doctor" ? "var(--accent-cyan)" : "transparent", color: viewMode === "doctor" ? "#fff" : "var(--text-muted)", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", transition: "all 0.2s" }}
+            >
+              Doctor Detailed View
+            </button>
+          </div>
+        </div>
+
         {/* Risk tier hero */}
-        <motion.div className="card" initial={{ scale: 0.97 }} animate={{ scale: 1 }}
+        <motion.div className="card" 
+          initial={{ scale: 0.97 }} 
+          animate={data?.risk_tier === "critical" ? { scale: [1, 1.02, 1], boxShadow: ["0px 0px 0px rgba(239,68,68,0)", "0px 0px 40px rgba(239,68,68,0.5)", "0px 0px 0px rgba(239,68,68,0)"] } : { scale: 1 }}
+          transition={data?.risk_tier === "critical" ? { repeat: Infinity, duration: 1.5 } : {}}
           style={{ padding: "2rem", marginBottom: "1.5rem", textAlign: "center",
-            background: risk.bg, borderColor: risk.border }}>
+            background: risk.bg, borderColor: data?.risk_tier === "critical" ? "rgba(239,68,68,0.6)" : risk.border }}>
           <RiskIcon size={48} color={risk.color} style={{ marginBottom: 12 }} />
           <div style={{ fontSize: "0.75rem", letterSpacing: "0.15em", fontWeight: 700, color: risk.color, marginBottom: 8 }}>
             RISK ASSESSMENT
@@ -84,47 +107,56 @@ export default function ResultPage() {
 
         <div className="grid-2" style={{ marginBottom: "1.5rem" }}>
           {/* Top conditions */}
-          <div className="card" style={{ padding: "1.5rem" }}>
-            <h3 style={{ fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: "1rem", display: "flex", alignItems: "center", gap: 6 }}>
-              <Activity size={13} /> Differential Diagnosis
-            </h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              {(data?.top_conditions || []).map((cond, i) => (
-                <div key={i}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                    <span style={{ fontWeight: 600, fontSize: "0.9rem" }}>{cond.name}</span>
-                    <span style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--accent-blue-light)" }}>
-                      {((cond.confidence || 0) * 100).toFixed(0)}%
-                    </span>
+          {viewMode === "doctor" && (
+            <div className="card" style={{ padding: "1.5rem" }}>
+              <h3 style={{ fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: "1rem", display: "flex", alignItems: "center", gap: 6 }}>
+                <Activity size={13} /> Differential Diagnosis
+              </h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                {(data?.top_conditions || []).map((cond, i) => (
+                  <div key={i}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                      <span style={{ fontWeight: 600, fontSize: "0.9rem" }}>{cond.name}</span>
+                      <span style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--accent-blue-light)" }}>
+                        {((cond.confidence || 0) * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                    <div className="progress-bar-track">
+                      <motion.div className="progress-bar-fill"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${(cond.confidence || 0) * 100}%` }}
+                        transition={{ duration: 0.8, delay: i * 0.15 }}
+                        style={{ background: i === 0 ? "linear-gradient(90deg, var(--accent-blue), var(--accent-cyan))" : "rgba(255,255,255,0.2)" }}
+                      />
+                    </div>
+                    {cond.icd10 && (
+                      <div style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: 2 }}>ICD-10: {cond.icd10}</div>
+                    )}
                   </div>
-                  <div className="progress-bar-track">
-                    <motion.div className="progress-bar-fill"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${(cond.confidence || 0) * 100}%` }}
-                      transition={{ duration: 0.8, delay: i * 0.15 }}
-                      style={{ background: i === 0 ? "linear-gradient(90deg, var(--accent-blue), var(--accent-cyan))" : "rgba(255,255,255,0.2)" }}
-                    />
-                  </div>
-                  {cond.icd10 && (
-                    <div style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: 2 }}>ICD-10: {cond.icd10}</div>
-                  )}
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Reasoning & action */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            <div className="card" style={{ padding: "1.5rem", flex: 1 }}>
-              <h3 style={{ fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: "1rem", display: "flex", alignItems: "center", gap: 6 }}>
-                <Shield size={13} /> Recommended Action
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem", gridColumn: viewMode === "patient" ? "1 / -1" : "auto" }}>
+            <div className="card" style={{ padding: "1.5rem", flex: 1, border: data?.risk_tier === "critical" ? "1px solid rgba(239,68,68,0.5)" : "1px solid var(--border-color)" }}>
+              <h3 style={{ fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "0.08em", color: data?.risk_tier === "critical" ? "var(--risk-critical)" : "var(--text-muted)", marginBottom: "1rem", display: "flex", alignItems: "center", gap: 6 }}>
+                <Shield size={13} /> {viewMode === "patient" ? "Assessment & Advice" : "Clinical Action Plan"}
               </h3>
-              <p style={{ fontSize: "0.95rem", lineHeight: 1.6, color: "var(--text-primary)", fontWeight: 500 }}>
-                {data?.recommended_action}
+              
+              {data?.risk_tier === "low" && viewMode === "patient" && (
+                <div style={{ padding: "12px", background: "rgba(16,185,129,0.1)", borderRadius: "8px", marginBottom: "1rem", color: "var(--risk-low)", fontWeight: "bold" }}>
+                  🌿 Chill out! The AI sees no alarming red flags. You can relax and take it easy.
+                </div>
+              )}
+
+              <p style={{ fontSize: viewMode === "patient" ? "1.05rem" : "0.95rem", lineHeight: 1.6, color: "var(--text-primary)", fontWeight: 500, whiteSpace: "pre-line" }}>
+                {viewMode === "patient" ? (data?.patient_explanation || data?.recommended_action) : (data?.doctor_explanation || data?.recommended_action)}
               </p>
             </div>
 
-            {(data?.behavioral_flags || []).length > 0 && (
+            {viewMode === "doctor" && (data?.behavioral_flags || []).length > 0 && (
               <div className="card" style={{ padding: "1.5rem" }}>
                 <h3 style={{ fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: "1rem", display: "flex", alignItems: "center", gap: 6 }}>
                   <MessageSquare size={13} /> Behavioral Signals
@@ -143,7 +175,7 @@ export default function ResultPage() {
         </div>
 
         {/* Reasoning chain */}
-        {(data?.reasoning_chain || []).length > 0 && (
+        {viewMode === "doctor" && (data?.reasoning_chain || []).length > 0 && (
           <div className="card" style={{ padding: "1.5rem", marginBottom: "1.5rem" }}>
             <h3 style={{ fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: "1rem" }}>
               Clinical Reasoning

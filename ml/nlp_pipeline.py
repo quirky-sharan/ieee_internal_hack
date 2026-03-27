@@ -120,21 +120,49 @@ def _preprocess(text: str) -> str:
     return re.sub(r"[^\w\s]", " ", text.lower()).strip()
 
 
-def _fuzzy_match_term(text: str, term_entry: dict, threshold: int = 65) -> float:
+def _is_negated(clean_text: str, candidates: List[str]) -> bool:
+    """Check if any of the matched candidates are preceded by negation words."""
+    negation_words = r'\b(no|not|deny|without|doesn\'t|don\'t|never|cannot|can\'t|isn\'t|aren\'t|wasn\'t|weren\'t)\b'
+    for candidate in candidates:
+        if len(candidate) < 3:
+            continue
+        # Look for a negation word within 6 words prior to the candidate
+        pattern = negation_words + r'\s+(?:\w+\s+){0,6}' + re.escape(candidate)
+        if re.search(pattern, clean_text):
+            return True
+    return False
+
+def _fuzzy_match_term(text: str, term_entry: dict, threshold: int = 80) -> float:
     """Return best fuzzy match score (0-1) for a term against input text."""
     candidates = [term_entry["term"]] + term_entry["aliases"]
-    best = 0.0
     clean = _preprocess(text)
+    
+    # Advanced NLP: Check for negation FIRST
+    if _is_negated(clean, candidates):
+        return 0.0
+        
+    best = 0.0
+    text_words = set(clean.split())
+    
     for candidate in candidates:
-        # Exact substring match → high confidence
-        if candidate in clean:
+        cand_words = set(candidate.split())
+        
+        # 1. Exact phrase match with boundaries
+        if re.search(r'\b' + re.escape(candidate) + r'\b', clean):
             score = 95 if len(candidate) > 4 else 85
             best = max(best, score / 100.0)
+            
+        # 2. Token overlap and strict fuzzy matching
         else:
-            # Fuzzy partial ratio
-            ratio = fuzz.partial_ratio(candidate, clean)
-            if ratio >= threshold:
-                best = max(best, ratio / 100.0)
+            overlap = len(cand_words.intersection(text_words))
+            if overlap > 0 and overlap == len(cand_words):
+                best = max(best, 0.8)
+            else:
+                # token_set_ratio is MUCH safer than partial_ratio against long strings
+                ratio = fuzz.token_set_ratio(candidate, clean)
+                req_thresh = 95 if len(candidate) <= 5 else threshold
+                if ratio >= req_thresh:
+                    best = max(best, ratio / 100.0)
     return best
 
 

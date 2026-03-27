@@ -100,21 +100,25 @@ async def submit_answer(
     }
     intensity_result = await call_ml("analyze-intensity", intensity_payload)
 
-    total_questions = 5
+    total_questions = ml_result.get("total_questions", 8)
     next_idx = answer_count + 1
-    interview_complete = next_idx >= total_questions
+    interview_complete = ml_result.get("interview_complete", next_idx >= total_questions)
 
     if not interview_complete:
         if ml_result.get("question"):
             next_q = ml_result["question"]
             next_cat = ml_result.get("category", "general")
+            next_opt = ml_result.get("options", None)
         else:
-            q = DEFAULT_QUESTIONS[min(next_idx, len(DEFAULT_QUESTIONS) - 1)]
+            # Fallback
+            q = DEFAULT_QUESTIONS[min(next_idx, len(DEFAULT_QUESTIONS) - 1)] if next_idx < len(DEFAULT_QUESTIONS) else DEFAULT_QUESTIONS[-1]
             next_q = q["text"]
             next_cat = q["category"]
+            next_opt = None
     else:
         next_q = None
         next_cat = None
+        next_opt = None
         session.status = "completed"
         session.completed_at = datetime.utcnow()
         db.commit()
@@ -126,6 +130,7 @@ async def submit_answer(
         interview_complete=interview_complete,
         current_depth=next_idx,
         progress_pct=progress,
+        options=next_opt,
     )
 
 @router.get("/result/{session_id}", response_model=RiskOutput)
@@ -172,6 +177,8 @@ async def get_result(
         top_conditions = ml_result.get("top_conditions", [])
         reasoning = ml_result.get("reasoning_chain", [])
         action = ml_result.get("recommended_action", "Consult a healthcare provider.")
+        patient_exp = ml_result.get("patient_explanation", "")
+        doctor_exp = ml_result.get("doctor_explanation", "")
         trajectory = ml_result.get("trajectory_label")
         traj_score = ml_result.get("escalation_score")
         beh_flags = ml_result.get("behavioral_flags", [])
@@ -184,6 +191,8 @@ async def get_result(
         ]
         reasoning = ["ML service unavailable — connect the AI module to get full analysis."]
         action = "Please consult a healthcare provider for a full evaluation."
+        patient_exp = "The AI module is currently offline. We cannot provide a clinical assessment at this time."
+        doctor_exp = "ML infer endpoint unavailable. Differential diagnosis suspended."
         trajectory = None
         traj_score = None
         beh_flags = []
@@ -202,6 +211,8 @@ async def get_result(
         reasoning_chain=reasoning,
         behavioral_flags=beh_flags,
         recommended_action=action,
+        patient_explanation=patient_exp,
+        doctor_explanation=doctor_exp,
         trajectory_label=trajectory,
         trajectory_score=traj_score,
     )

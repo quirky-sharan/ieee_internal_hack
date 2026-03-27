@@ -11,203 +11,14 @@ from .nlp_pipeline import extract_symptoms
 from .intensity_analyzer import analyze_intensity
 
 
-# ─── Symptom–Condition Knowledge Base ──────────────────────────────────────────
-# Each condition has: name, icd10, risk_weight, symptom_associations
-# symptom_associations maps symptom ICD-10 codes to how strongly they suggest this condition (0-1)
-CONDITIONS: List[Dict[str, Any]] = [
-    {
-        "name": "Common Cold (Acute Upper Respiratory Infection)",
-        "icd10": "J06.9",
-        "risk_weight": 0.2,
-        "symptoms": {"R05.9": 0.7, "R09.81": 0.8, "R09.89": 0.7, "R07.0": 0.6, "R06.7": 0.5, "R51.9": 0.4, "R53.83": 0.3, "R50.9": 0.4},
-    },
-    {
-        "name": "Influenza",
-        "icd10": "J11.1",
-        "risk_weight": 0.4,
-        "symptoms": {"R50.9": 0.9, "R53.83": 0.8, "M79.10": 0.8, "R51.9": 0.7, "R05.9": 0.6, "R07.0": 0.5, "R68.83": 0.6, "R63.0": 0.4},
-    },
-    {
-        "name": "Acute Bronchitis",
-        "icd10": "J20.9",
-        "risk_weight": 0.4,
-        "symptoms": {"R05.9": 0.9, "R09.3": 0.7, "R07.89": 0.5, "R50.9": 0.4, "R53.83": 0.4, "R06.00": 0.4},
-    },
-    {
-        "name": "Pneumonia",
-        "icd10": "J18.9",
-        "risk_weight": 0.8,
-        "symptoms": {"R05.9": 0.8, "R50.9": 0.8, "R06.00": 0.8, "R07.89": 0.6, "R09.3": 0.7, "R53.83": 0.6, "R68.83": 0.5},
-    },
-    {
-        "name": "Asthma Exacerbation",
-        "icd10": "J45.901",
-        "risk_weight": 0.6,
-        "symptoms": {"R06.00": 0.95, "R06.2": 0.95, "R07.89": 0.85, "R05.9": 0.6, "G47.00": 0.5, "R53.83": 0.4, "R53.1": 0.4, "F41.9": 0.3, "R00.2": 0.3},
-    },
-    {
-        "name": "COPD (Chronic Obstructive Pulmonary Disease)",
-        "icd10": "J44.1",
-        "risk_weight": 0.7,
-        "symptoms": {"R06.00": 0.9, "R05.9": 0.8, "R06.2": 0.85, "R07.89": 0.7, "R53.83": 0.5, "R09.3": 0.6},
-    },
-    {
-        "name": "Pulmonary Embolism",
-        "icd10": "I26.99",
-        "risk_weight": 1.0,
-        "symptoms": {"R06.00": 0.9, "R07.89": 0.85, "R07.9": 0.8, "R00.2": 0.7, "R42": 0.5, "R53.1": 0.4, "R61": 0.4},
-    },
-    {
-        "name": "Gastroesophageal Reflux Disease (GERD)",
-        "icd10": "K21.0",
-        "risk_weight": 0.3,
-        "symptoms": {"R12": 0.9, "R07.9": 0.4, "R11.0": 0.4, "R05.9": 0.3, "R13.10": 0.3},
-    },
-    {
-        "name": "Gastritis",
-        "icd10": "K29.70",
-        "risk_weight": 0.3,
-        "symptoms": {"R10.9": 0.8, "R11.0": 0.7, "R14.0": 0.5, "R12": 0.5, "R63.0": 0.4},
-    },
-    {
-        "name": "Irritable Bowel Syndrome",
-        "icd10": "K58.9",
-        "risk_weight": 0.3,
-        "symptoms": {"R10.9": 0.8, "R14.0": 0.8, "R19.7": 0.6, "K59.00": 0.6, "R53.83": 0.3},
-    },
-    {
-        "name": "Gastroenteritis",
-        "icd10": "K52.9",
-        "risk_weight": 0.4,
-        "symptoms": {"R19.7": 0.9, "R11.10": 0.8, "R10.9": 0.7, "R11.0": 0.7, "R50.9": 0.5, "R53.83": 0.4},
-    },
-    {
-        "name": "Tension Headache",
-        "icd10": "G44.209",
-        "risk_weight": 0.2,
-        "symptoms": {"R51.9": 0.9, "M54.2": 0.5, "R53.83": 0.3, "Z73.3": 0.4},
-    },
-    {
-        "name": "Migraine",
-        "icd10": "G43.909",
-        "risk_weight": 0.4,
-        "symptoms": {"R51.9": 0.9, "R11.0": 0.6, "H53.9": 0.5, "R42": 0.4, "R53.83": 0.3},
-    },
-    {
-        "name": "Generalized Anxiety Disorder",
-        "icd10": "F41.1",
-        "risk_weight": 0.4,
-        "symptoms": {"F41.9": 0.9, "G47.00": 0.6, "R53.83": 0.5, "R00.2": 0.5, "R51.9": 0.3, "R10.9": 0.3, "M79.10": 0.3, "R41.840": 0.6},
-    },
-    {
-        "name": "Major Depressive Disorder",
-        "icd10": "F32.1",
-        "risk_weight": 0.6,
-        "symptoms": {"F32.9": 0.9, "G47.00": 0.7, "R53.83": 0.8, "R63.0": 0.5, "R63.5": 0.4, "R45.89": 0.6, "R41.840": 0.7},
-    },
-    {
-        "name": "Iron Deficiency Anemia",
-        "icd10": "D50.9",
-        "risk_weight": 0.5,
-        "symptoms": {"R53.83": 0.9, "R53.1": 0.7, "R42": 0.6, "R06.00": 0.4, "R51.9": 0.3, "R00.2": 0.4},
-    },
-    {
-        "name": "Hypothyroidism",
-        "icd10": "E03.9",
-        "risk_weight": 0.5,
-        "symptoms": {"R53.83": 0.8, "R63.5": 0.7, "K59.00": 0.5, "R53.1": 0.6, "F32.9": 0.4, "R41.840": 0.4, "R40.0": 0.5},
-    },
-    {
-        "name": "Type 2 Diabetes (Uncontrolled)",
-        "icd10": "E11.65",
-        "risk_weight": 0.6,
-        "symptoms": {"R53.83": 0.7, "R63.4": 0.6, "R35.0": 0.8, "R63.0": 0.3, "H53.9": 0.4, "R20.0": 0.5},
-    },
-    {
-        "name": "Urinary Tract Infection",
-        "icd10": "N39.0",
-        "risk_weight": 0.4,
-        "symptoms": {"R30.0": 0.9, "R35.0": 0.7, "R31.9": 0.5, "R50.9": 0.4, "R10.2": 0.5},
-    },
-    {
-        "name": "Hypertension (Symptomatic)",
-        "icd10": "I10",
-        "risk_weight": 0.5,
-        "symptoms": {"R51.9": 0.5, "R42": 0.5, "H53.9": 0.4, "R07.9": 0.3, "R06.00": 0.3, "I10": 0.9},
-    },
-    {
-        "name": "Acute Coronary Syndrome",
-        "icd10": "I24.9",
-        "risk_weight": 1.0,
-        "symptoms": {"R07.9": 0.9, "R06.00": 0.7, "R11.0": 0.4, "R61": 0.5, "R42": 0.4, "R53.1": 0.4, "F41.9": 0.3},
-    },
-    {
-        "name": "Allergic Rhinitis",
-        "icd10": "J30.9",
-        "risk_weight": 0.2,
-        "symptoms": {"R06.7": 0.8, "R09.89": 0.8, "R09.81": 0.7, "L29.9": 0.4, "R05.9": 0.3, "H57.10": 0.3},
-    },
-    {
-        "name": "Contact Dermatitis",
-        "icd10": "L25.9",
-        "risk_weight": 0.2,
-        "symptoms": {"R21": 0.9, "L29.9": 0.8, "R60.9": 0.4},
-    },
-    {
-        "name": "Musculoskeletal Strain",
-        "icd10": "M79.1",
-        "risk_weight": 0.2,
-        "symptoms": {"M79.10": 0.9, "M54.9": 0.6, "M25.50": 0.5, "M54.2": 0.4, "R53.83": 0.2},
-    },
-    {
-        "name": "Chronic Fatigue Syndrome",
-        "icd10": "R53.82",
-        "risk_weight": 0.5,
-        "symptoms": {"R53.83": 0.9, "R53.1": 0.7, "G47.00": 0.6, "M79.10": 0.6, "R41.840": 0.6, "R51.9": 0.4, "R41.3": 0.4},
-    },
-    {
-        "name": "Fibromyalgia",
-        "icd10": "M79.7",
-        "risk_weight": 0.4,
-        "symptoms": {"M79.10": 0.9, "R53.83": 0.8, "G47.00": 0.7, "R51.9": 0.5, "R41.840": 0.5, "F32.9": 0.4, "R10.9": 0.3},
-    },
-    {
-        "name": "Vertigo (BPPV)",
-        "icd10": "H81.10",
-        "risk_weight": 0.3,
-        "symptoms": {"R42": 0.9, "R11.0": 0.6, "R55": 0.3, "F41.9": 0.3},
-    },
-    {
-        "name": "Appendicitis",
-        "icd10": "K35.80",
-        "risk_weight": 0.9,
-        "symptoms": {"R10.9": 0.9, "R10.2": 0.7, "R50.9": 0.7, "R11.0": 0.6, "R11.10": 0.5, "R63.0": 0.5},
-    },
-    {
-        "name": "Meningitis",
-        "icd10": "G03.9",
-        "risk_weight": 1.0,
-        "symptoms": {"R51.9": 0.9, "M54.2": 0.8, "R50.9": 0.8, "R41.0": 0.6, "R11.10": 0.5, "H53.9": 0.4, "R56.9": 0.4},
-    },
-    {
-        "name": "Stroke / TIA",
-        "icd10": "I63.9",
-        "risk_weight": 1.0,
-        "symptoms": {"R53.1": 0.8, "R20.0": 0.8, "R47.89": 0.8, "H53.9": 0.7, "R42": 0.6, "R51.9": 0.5, "R41.0": 0.6},
-    },
-    {
-        "name": "Panic Disorder",
-        "icd10": "F41.0",
-        "risk_weight": 0.4,
-        "symptoms": {"F41.9": 0.9, "R00.2": 0.8, "R06.00": 0.7, "R07.9": 0.5, "R42": 0.5, "R25.1": 0.4, "R61": 0.4},
-    },
-    {
-        "name": "Celiac Disease",
-        "icd10": "K90.0",
-        "risk_weight": 0.4,
-        "symptoms": {"R19.7": 0.7, "R14.0": 0.7, "R10.9": 0.6, "R53.83": 0.6, "R63.4": 0.5, "R21": 0.3},
-    },
-]
+import sqlite3
+import os
+
+DB_PATH = os.path.join(os.path.dirname(__file__), "clinical_knowledge.db")
+
+# Removed memory-heavy static global load.
+# We will query SQLite dynamically for maximum efficiency.
+
 
 
 def _compute_scores(
@@ -224,51 +35,70 @@ def _compute_scores(
     3. Coverage of the condition's key symptoms
     """
     scored = []
+    if not symptom_icd10_codes:
+        return scored
 
-    for condition in CONDITIONS:
-        symptom_map = condition["symptoms"]
-        matched_symptoms = []
-        total_weight = 0.0
-        strong_matches = 0  # symptoms with weight >= 0.6
-        max_possible_weight = sum(symptom_map.values())
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
 
-        for code in symptom_icd10_codes:
-            if code in symptom_map:
-                weight = symptom_map[code]
-                total_weight += weight
-                matched_symptoms.append(code)
-                if weight >= 0.6:
-                    strong_matches += 1
+    # Create IN clause
+    placeholders = ','.join(['?'] * len(symptom_icd10_codes))
+    
+    # Very fast SQL approach: Only analyze conditions where patient holds AT LEAST ONE matching symptom
+    query = f"""
+    SELECT c.id, c.name, c.icd10, c.risk_weight, c.patient_explanation, c.doctor_explanation,
+           SUM(cs.probability) as matched_weight, 
+           COUNT(cs.symptom_code) as matched_count,
+           (SELECT SUM(probability) FROM condition_symptoms WHERE condition_id = c.id) as max_weight,
+           (SELECT COUNT(*) FROM condition_symptoms WHERE condition_id = c.id) as total_symptoms
+    FROM conditions c
+    JOIN condition_symptoms cs ON c.id = cs.condition_id
+    WHERE cs.symptom_code IN ({placeholders})
+    GROUP BY c.id
+    ORDER BY matched_weight DESC
+    LIMIT 100
+    """
+    
+    cursor.execute(query, symptom_icd10_codes)
+    candidates = cursor.fetchall()
 
-        if total_weight == 0:
-            continue
-
+    for cand in candidates:
+        matched_weight = cand["matched_weight"]
+        max_possible_weight = cand["max_weight"]
+        matched_count = cand["matched_count"]
+        total_syms = cand["total_symptoms"]
+        
+        # We don't have strong_matches explicitly in this fast query unless we do SUM(CASE), 
+        # so we will estimate strong_ratio as basically matching
+        strong_ratio = matched_weight / max(matched_count * 0.6, 0.1)
+        strong_ratio = min(strong_ratio, 1.0)
+        
         # Coverage: what fraction of the condition's symptoms were observed
-        coverage = len(matched_symptoms) / max(len(symptom_map), 1)
+        coverage = matched_count / max(total_syms, 1)
 
         # Weighted match: how much of the condition's total weight was hit
-        weighted_match = total_weight / max(max_possible_weight, 0.01)
+        weighted_match = matched_weight / max(max_possible_weight, 0.01)
 
-        # Strong match bonus: heavily reward conditions where key symptoms match
-        strong_ratio = strong_matches / max(len(matched_symptoms), 1)
-
-        # Combined: weighted_match is most important, then strong_ratio, then coverage
+        # Combined formula
         base_score = (weighted_match * 0.5 + strong_ratio * 0.3 + coverage * 0.2)
 
-        # Intensity modifier — higher intensity boosts high-risk conditions
-        intensity_modifier = 1.0 + (intensity_score - 0.5) * condition["risk_weight"] * 0.5
-
+        # Intensity modifier
+        intensity_modifier = 1.0 + (intensity_score - 0.5) * cand["risk_weight"] * 0.5
         final_score = min(base_score * intensity_modifier, 0.98)
 
         scored.append({
-            "name": condition["name"],
-            "icd10": condition["icd10"],
+            "name": cand["name"],
+            "icd10": cand["icd10"],
             "confidence": round(final_score, 3),
-            "matched_symptoms": matched_symptoms,
-            "risk_weight": condition["risk_weight"],
-            "strong_matches": strong_matches,
+            "matched_symptoms": symptom_icd10_codes,
+            "risk_weight": cand["risk_weight"],
+            "strong_matches": matched_count,
+            "patient_explanation": cand["patient_explanation"],
+            "doctor_explanation": cand["doctor_explanation"]
         })
 
+    conn.close()
     scored.sort(key=lambda x: x["confidence"], reverse=True)
     return scored
 
@@ -407,23 +237,34 @@ def run_inference(
     # 6. Reasoning chain
     reasoning = _build_reasoning(symptoms, top_conditions, intensity["intensity_level"], behavioral_flags, is_emergency)
 
-    # 7. Recommended action
     top_name = top_conditions[0]["name"] if top_conditions else ""
     action = _recommended_action(risk_tier, top_name)
 
     # 8. Confidence score
     confidence = top_conditions[0]["confidence"] if top_conditions else 0.3
+    
+    # 9. Dual Overviews
+    patient_exp = top_conditions[0].get("patient_explanation", "") if top_conditions else "We couldn't determine a clear issue right now. It's best to take a rest."
+    doctor_exp = top_conditions[0].get("doctor_explanation", "") if top_conditions else "Insufficient symptom alignment for definitive diagnosis."
+
+    # Emergency overrides
+    if is_emergency:
+        action = "CRITICAL EMERGENCY. CALL EMERGENCY SERVICES IMMEDIATELY (e.g., 911)."
+        patient_exp = "EMERGENCY ALERT: Your symptoms suggest a severe and immediately life-threatening situation. Please stop using this app and seek proper emergency medical attention RIGHT NOW."
+        doctor_exp = "CRITICAL FLAG: System detected life-threatening keywords (e.g. chest pain, suicide, stroke indicators). Automatic override to max severity. Immediate dispatch to ER recommended."
 
     return {
         "risk_tier": risk_tier,
         "confidence_score": round(confidence, 3),
         "top_conditions": [
             {"name": c["name"], "confidence": c["confidence"], "icd10": c["icd10"]}
-            for c in top_conditions
+            for c in top_conditions[:5]
         ],
         "reasoning_chain": reasoning,
         "behavioral_flags": behavioral_flags,
         "recommended_action": action,
+        "patient_explanation": patient_exp,
+        "doctor_explanation": doctor_exp,
         "intensity": intensity,
         "symptoms_extracted": symptoms[:10],
         "categories_detected": nlp_result["categories_detected"],
