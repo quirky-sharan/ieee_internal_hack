@@ -45,6 +45,7 @@ class UserUpdate(BaseModel):
     full_name: Optional[str] = None
     age: Optional[int] = None
     sex: Optional[str] = None
+    photo_url: Optional[str] = None
     weight: Optional[str] = None
     height: Optional[str] = None
     blood_group: Optional[str] = None

@@ -21,6 +21,7 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [healthForm, setHealthForm] = useState({
+    photo_url: user?.photo_url || "",
     weight: user?.weight || "",
     height: user?.height || "",
     blood_group: user?.blood_group || "",
@@ -90,6 +91,16 @@ export default function ProfilePage() {
             </div>
             
             <div className="card" style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+              {editing && (
+                <>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label" style={{ display: "flex", alignItems: "center", gap: 6 }}>Profile Picture URL</label>
+                    <input type="url" className="form-input" placeholder="https://example.com/my-photo.jpg" value={healthForm.photo_url} onChange={e => setHealthForm({...healthForm, photo_url: e.target.value})} />
+                  </div>
+                  <div className="form-divider" style={{ margin: "0.25rem 0" }}></div>
+                </>
+              )}
+                
               <div className="grid-2" style={{ gap: "1rem", display: "grid", gridTemplateColumns: "1fr 1fr" }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Blood Group</label>

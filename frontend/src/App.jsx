@@ -1,5 +1,7 @@
+import { useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "./store/authStore";
+import { authApi } from "./api/endpoints";
 import Navbar from "./components/Navbar";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -21,6 +23,16 @@ function PublicRoute({ children }) {
 }
 
 export default function App() {
+  const { token, setUser, logout } = useAuthStore();
+
+  useEffect(() => {
+    if (token) {
+      authApi.getMe().then(r => setUser(r.data)).catch(err => {
+        if (err.response?.status === 401) logout();
+      });
+    }
+  }, [token, setUser, logout]);
+
   return (
     <div className="app-layout">
       <div className="bg-animated" />
