@@ -5,6 +5,10 @@ import { authApi } from "../api/endpoints";
 import { useAuthStore } from "../store/authStore";
 import { Brain, Mail, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
 
+// Firebase Auth
+import { signInWithPopup } from "firebase/auth";
+import { auth, googleProvider } from "../config/firebase";
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const setAuth = useAuthStore((s) => s.setAuth);
@@ -24,20 +28,35 @@ export default function LoginPage() {
       setAuth(res.data.user, res.data.access_token);
       navigate("/dashboard");
     } catch (err) {
-      setError(err.response?.data?.detail || "Login failed. Please try again.");
+      setError(err.response?.data?.detail || "Login failed. Please check your credentials.");
     } finally { setLoading(false); }
   };
 
   const handleGoogle = async () => {
-    setError(""); setGoogleLoading(true);
+    setError("");
+    setGoogleLoading(true);
     try {
-      // Demo mode: skip Firebase, go directly
-      const res = await authApi.googleAuth("demo-firebase-token", "Demo Patient", null);
+      // Step 1: Firebase popup -> get real Google ID token
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      const idToken = await user.getIdToken();
+
+      // Step 2: Send token to OUR backend for verification + user upsert
+      const res = await authApi.googleAuth(
+        idToken,
+        user.displayName,
+        user.email
+      );
+
       setAuth(res.data.user, res.data.access_token);
       navigate("/dashboard");
     } catch (err) {
-      setError("Google sign-in failed. Please use email login.");
-    } finally { setGoogleLoading(false); }
+      console.error("Google auth error:", err);
+      const msg = err.response?.data?.detail || err.message || "Google sign-in failed.";
+      setError(msg);
+    } finally {
+      setGoogleLoading(false);
+    }
   };
 
   return (
@@ -67,7 +86,7 @@ export default function LoginPage() {
         </div>
 
         <div className="card" style={{ padding: "2rem" }}>
-          {/* Google */}
+          {/* Google Sign-In */}
           <button
             className="btn btn-google btn-full"
             onClick={handleGoogle}
@@ -87,6 +106,7 @@ export default function LoginPage() {
 
           <div className="form-divider">or sign in with email</div>
 
+          {/* Error message */}
           {error && (
             <div style={{
               display: "flex", alignItems: "center", gap: 8,
@@ -98,6 +118,7 @@ export default function LoginPage() {
             </div>
           )}
 
+          {/* Email / Password form */}
           <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             <div className="form-group">
               <label className="form-label">Email address</label>
@@ -142,10 +163,6 @@ export default function LoginPage() {
           <Link to="/register" style={{ color: "var(--accent-blue-light)", fontWeight: 600, textDecoration: "none" }}>
             Create one free
           </Link>
-        </p>
-
-        <p style={{ textAlign: "center", marginTop: "1rem", color: "var(--text-muted)", fontSize: "0.75rem", lineHeight: 1.5 }}>
-          🎯 <strong>Demo mode active</strong> — use any email &amp; password to log in
         </p>
       </motion.div>
     </div>
