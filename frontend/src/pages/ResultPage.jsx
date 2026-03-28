@@ -6,7 +6,7 @@ import { sessionApi } from "../api/endpoints";
 import {
   Shield, AlertTriangle, CheckCircle, XCircle,
   TrendingUp, TrendingDown, Minus, Download, RotateCcw,
-  Activity, MessageSquare, ChevronRight
+  Activity, MessageSquare, ChevronRight, Cat
 } from "lucide-react";
 
 const RISK_CONFIG = {
@@ -193,7 +193,7 @@ export default function ResultPage() {
         {/* Actions */}
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
           <button className="btn btn-primary" onClick={() => navigate("/interview")} style={{ gap: 8 }}>
-            <RotateCcw size={16} /> New Assessment
+            <Cat size={16} /> New Assessment
           </button>
           <button className="btn btn-secondary" onClick={() => navigate("/history")} style={{ gap: 8 }}>
             <Activity size={16} /> View History

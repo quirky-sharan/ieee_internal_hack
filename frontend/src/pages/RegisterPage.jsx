@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { authApi } from "../api/endpoints";
 import { useAuthStore } from "../store/authStore";
-import { Brain, Mail, Lock, User, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Cat, Mail, Lock, User, Eye, EyeOff, AlertCircle } from "lucide-react";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -69,7 +69,7 @@ export default function RegisterPage() {
             background: "linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.2))",
             border: "1px solid rgba(59,130,246,0.3)", marginBottom: "1rem"
           }}>
-            <Brain size={28} color="var(--accent-blue)" />
+            <Cat size={28} color="var(--accent-blue)" />
           </div>
           <h1 style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: "1.75rem", fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 8 }}>
             Create your account

@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { authApi } from "../api/endpoints";
 import { useAuthStore } from "../store/authStore";
-import { Brain, Mail, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, AlertCircle, Cat } from "lucide-react";
 
 // Firebase Auth
 import { signInWithPopup } from "firebase/auth";

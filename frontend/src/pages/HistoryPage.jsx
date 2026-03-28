@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { sessionApi } from "../api/endpoints";
 import { format } from "date-fns";
-import { Clock, ChevronRight, Brain, Activity } from "lucide-react";
+import { Clock, ChevronRight, Cat, Activity } from "lucide-react";
 
 const RISK_COLORS = {
   low: "var(--risk-low)", medium: "var(--risk-medium)",
@@ -36,7 +36,7 @@ export default function HistoryPage() {
             </p>
           </div>
           <button className="btn btn-primary" onClick={() => navigate("/interview")} style={{ gap: 8 }}>
-            <Brain size={16} /> New Assessment
+            <Cat size={16} /> New Assessment
           </button>
         </div>
 
